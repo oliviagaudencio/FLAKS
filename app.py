@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, flash
+from flask import Flask, render_template, request, flash, redirect
 app = Flask(__name__)
 from database import db
 from flask_migrate import Migrate
@@ -36,11 +36,30 @@ def dados():
     dados = request.form
     return render_template('dados.html', dados=dados)
 
-if __name__ == '__main__':
-    app.run()
-
 @app.route('/usuario')
 def usuario():
-    u = Usuario.query.al()   #selec usuario from (nome da tabela)
+    u = Usuario.query.all()   #selec usuario from (nome da tabela)
     return render_template('usuario_lista.html', dados = u)
 
+@app.route('/usuario/add')
+def usuario_add():
+    return render_template('usuario_add.html')
+
+@app.route('/usuario/save', methods=['POST'])
+def usuario_save():
+    nome = request.form.get('nome')
+    email = request.form.get('email')
+    idade = request.form.get('idade')
+    if nome and email and idade:
+        usuario = Usuario(nome, email, idade)
+        db.session.add(usuario)
+        db.session.commit()
+        flash('usuário cadastrado com sucesso!!!')
+        return redirect('/usuario')
+    else:
+        flash('Preencha todos os campos!!!')
+
+
+    
+if __name__ == '__main__':
+    app.run()
